@@ -2,8 +2,13 @@ import fs from "node:fs"
 import path from "node:path"
 import Database from "better-sqlite3"
 
-const DEFAULT_DB_PATH = ".data/auth.db"
-const dbPath = path.resolve(process.cwd(), process.env.SQLITE_PATH ?? DEFAULT_DB_PATH)
+const DEFAULT_DB_PATH = process.env.VERCEL
+  ? "/tmp/em-motors.db"
+  : ".data/auth.db"
+const rawDbPath = process.env.SQLITE_PATH ?? DEFAULT_DB_PATH
+const dbPath = path.isAbsolute(rawDbPath)
+  ? rawDbPath
+  : path.resolve(process.cwd(), rawDbPath)
 const dir = path.dirname(dbPath)
 
 if (!fs.existsSync(dir)) {

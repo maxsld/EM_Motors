@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { stripBasePath } from "@/lib/base-path"
 
 const titles: Record<string, string> = {
   "/dashboard": "Tableau de bord",
@@ -17,7 +18,7 @@ const titles: Record<string, string> = {
 
 export function SiteHeader() {
   const pathname = usePathname()
-  const title = titles[pathname] ?? "Tableau de bord"
+  const title = titles[stripBasePath(pathname)] ?? "Tableau de bord"
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">

@@ -17,6 +17,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { withBasePath } from "@/lib/base-path"
 
 export default function Page() {
   const [events, setEvents] = React.useState<
@@ -60,7 +61,7 @@ export default function Page() {
   })
 
   const refreshEvents = React.useCallback(async () => {
-    const response = await fetch("/api/events")
+    const response = await fetch(withBasePath("/api/events"))
     if (!response.ok) return
     const data = await response.json()
     setEvents(data.events ?? [])
@@ -77,7 +78,7 @@ export default function Page() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch("/api/events", {
+      const response = await fetch(withBasePath("/api/events"), {
         method: "POST",
         body: formData,
       })
@@ -105,10 +106,13 @@ export default function Page() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch(`/api/events/${editEvent.id}`, {
-        method: "PUT",
-        body: formData,
-      })
+      const response = await fetch(
+        withBasePath(`/api/events/${editEvent.id}`),
+        {
+          method: "PUT",
+          body: formData,
+        }
+      )
       if (!response.ok) {
         return
       }
@@ -123,7 +127,9 @@ export default function Page() {
   }
 
   const handleDelete = async (id: number) => {
-    const response = await fetch(`/api/events/${id}`, { method: "DELETE" })
+    const response = await fetch(withBasePath(`/api/events/${id}`), {
+      method: "DELETE",
+    })
     if (!response.ok) {
       return
     }

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
+import { withBasePath } from "@/lib/base-path"
 
 export default function Home() {
-  redirect("/evenements")
+  redirect(withBasePath("/evenements"))
 }

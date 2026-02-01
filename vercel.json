@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/dashboard",
-      "destination": "https://em-motors-murex.vercel.app/"
+      "destination": "https://TON-PROJET-DASHBOARD.vercel.app/dashboard"
     },
     {
       "source": "/dashboard/:path*",
-      "destination": "https://em-motors-murex.vercel.app/:path*"
+      "destination": "https://TON-PROJET-DASHBOARD.vercel.app/dashboard/:path*"
     }
   ]
 }

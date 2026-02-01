@@ -2,12 +2,14 @@
 
 import Image from "next/image"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import logo from "@/assets/logo.png"
+import { withBasePath } from "@/lib/base-path"
 
 export function LoginForm({
   className,
@@ -15,6 +17,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -26,7 +29,7 @@ export function LoginForm({
     const password = String(formData.get("password") || "")
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch(withBasePath("/api/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -39,7 +42,7 @@ export function LoginForm({
         return
       }
 
-      window.location.href = "/evenements"
+      router.replace("/evenements")
     } catch {
       setError("Erreur de connexion.")
       setLoading(false)

@@ -25,6 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { stripBasePath, withBasePath } from "@/lib/base-path"
 
 const navItems = [
   {
@@ -56,11 +57,12 @@ const navItems = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const currentPath = stripBasePath(pathname)
   const router = useRouter()
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/logout", { method: "POST" })
+      await fetch(withBasePath("/api/logout"), { method: "POST" })
     } finally {
       router.replace("/login")
     }
@@ -95,7 +97,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     "focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
                     "hover:bg-primary hover:text-primary-foreground",
                     "cursor-pointer",
-                    pathname === item.url || pathname.startsWith(`${item.url}/`)
+                    currentPath === item.url ||
+                    currentPath.startsWith(`${item.url}/`)
                       ? "bg-primary text-primary-foreground"
                       : "",
                   ].join(" ")}
@@ -126,7 +129,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           user={{
             name: "EM Motors",
             email: "em.motors2025@gmail.com",
-            avatar: "/avatars/shadcn.jpg",
+            avatar: withBasePath("/avatars/shadcn.jpg"),
           }}
         />
       </SidebarFooter>

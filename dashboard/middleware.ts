@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+import { DASHBOARD_BASE_PATH } from "@/lib/base-path"
+
 const PROTECTED_PATHS = [
   "/adherents",
   "/evenements",
@@ -12,16 +14,24 @@ const PROTECTED_PATHS = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get("session")?.value
+  const basePath = request.nextUrl.basePath || DASHBOARD_BASE_PATH
+  const relativePath =
+    basePath && pathname.startsWith(basePath)
+      ? pathname.slice(basePath.length) || "/"
+      : pathname
 
-  if (pathname === "/login" && token) {
+  if (relativePath === "/login" && token) {
     const url = request.nextUrl.clone()
-    url.pathname = "/evenements"
+    url.pathname = `${basePath}/evenements`
     return NextResponse.redirect(url)
   }
 
-  if (PROTECTED_PATHS.some((path) => pathname.startsWith(path)) && !token) {
+  if (
+    PROTECTED_PATHS.some((path) => relativePath.startsWith(path)) &&
+    !token
+  ) {
     const url = request.nextUrl.clone()
-    url.pathname = "/login"
+    url.pathname = `${basePath}/login`
     return NextResponse.redirect(url)
   }
 
@@ -29,12 +39,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/login",
-    "/adherents/:path*",
-    "/evenements/:path*",
-    "/secretariat/:path*",
-    "/tresorerie/:path*",
-    "/communication/:path*",
-  ],
+  matcher: ["/dashboard/:path*"],
 }

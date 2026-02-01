@@ -13,6 +13,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { withBasePath } from "@/lib/base-path"
 
 type Operation = {
   id: number
@@ -48,7 +49,7 @@ export default function Page() {
   const [query, setQuery] = React.useState("")
 
   const refreshOperations = React.useCallback(async () => {
-    const response = await fetch("/api/treasury")
+    const response = await fetch(withBasePath("/api/treasury"))
     if (!response.ok) return
     const data = await response.json()
     setOperations(data.operations ?? [])
@@ -106,7 +107,7 @@ export default function Page() {
         status: form.status,
         notes: form.notes,
       }
-      const response = await fetch("/api/treasury", {
+      const response = await fetch(withBasePath("/api/treasury"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -133,11 +134,14 @@ export default function Page() {
         status: editOperation.status,
         notes: editOperation.notes,
       }
-      const response = await fetch(`/api/treasury/${editOperation.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
+      const response = await fetch(
+        withBasePath(`/api/treasury/${editOperation.id}`),
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      )
       if (!response.ok) return
       setEditOperation(null)
       await refreshOperations()
@@ -147,7 +151,9 @@ export default function Page() {
   }
 
   const handleDelete = async (id: number) => {
-    const response = await fetch(`/api/treasury/${id}`, { method: "DELETE" })
+    const response = await fetch(withBasePath(`/api/treasury/${id}`), {
+      method: "DELETE",
+    })
     if (!response.ok) return
     await refreshOperations()
   }

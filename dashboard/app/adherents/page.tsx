@@ -13,6 +13,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { withBasePath } from "@/lib/base-path"
 
 type Member = {
   id: number
@@ -48,7 +49,7 @@ export default function Page() {
   const [query, setQuery] = React.useState("")
 
   const refreshMembers = React.useCallback(async () => {
-    const response = await fetch("/api/members")
+    const response = await fetch(withBasePath("/api/members"))
     if (!response.ok) return
     const data = await response.json()
     setMembers(data.members ?? [])
@@ -98,7 +99,7 @@ export default function Page() {
         payment_status: form.payment_status,
         notes: form.notes,
       }
-      const response = await fetch("/api/members", {
+      const response = await fetch(withBasePath("/api/members"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -125,11 +126,14 @@ export default function Page() {
         payment_status: editMember.payment_status,
         notes: editMember.notes,
       }
-      const response = await fetch(`/api/members/${editMember.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
+      const response = await fetch(
+        withBasePath(`/api/members/${editMember.id}`),
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      )
       if (!response.ok) return
       setEditMember(null)
       await refreshMembers()
@@ -139,7 +143,9 @@ export default function Page() {
   }
 
   const handleDelete = async (id: number) => {
-    const response = await fetch(`/api/members/${id}`, { method: "DELETE" })
+    const response = await fetch(withBasePath(`/api/members/${id}`), {
+      method: "DELETE",
+    })
     if (!response.ok) return
     await refreshMembers()
   }

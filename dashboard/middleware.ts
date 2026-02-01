@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-import { DASHBOARD_BASE_PATH } from "@/lib/base-path"
-
 const PROTECTED_PATHS = [
   "/adherents",
   "/evenements",
@@ -10,6 +8,7 @@ const PROTECTED_PATHS = [
   "/tresorerie",
   "/communication",
 ]
+const DASHBOARD_BASE_PATH = "/dashboard"
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

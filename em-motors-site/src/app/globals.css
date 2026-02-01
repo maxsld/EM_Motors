@@ -304,6 +304,11 @@ body.is-loading {
   position: relative;
 }
 
+.events-carousel-wrap.is-empty::before,
+.events-carousel-wrap.is-empty::after {
+  content: none;
+}
+
 .events-carousel-wrap::before,
 .events-carousel-wrap::after {
   content: "";
@@ -328,6 +333,24 @@ body.is-loading {
 .events-carousel {
   position: relative;
   z-index: 2;
+}
+
+.events-empty {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: 240px;
+  padding: 40px 28px;
+  border: 2px dashed rgba(11, 11, 11, 0.18);
+  background: #f6f6f6;
+  color: #4a4a4a;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  font-style: italic;
+}
+
+.events-empty p {
+  margin: 0;
 }
 
 .carousel-controls {

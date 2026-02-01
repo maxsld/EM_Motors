@@ -291,6 +291,8 @@ export default function Home() {
     };
   }, []);
 
+  const hasEvents = events.length > 0;
+
   return (
     <>
       <div className="page-loader" id="page-loader" aria-live="polite">
@@ -319,6 +321,8 @@ export default function Home() {
             <a
               className="btn btn-ghost nav-cta"
               href="/dashboard/login"
+              target="_blank"
+              rel="noreferrer"
               aria-label="Connexion réservée à l'équipe"
             >
               Connexion
@@ -417,42 +421,58 @@ export default function Home() {
                 Rencontres, visites, conférences et sorties auto tout au long de l’année.
               </p>
             </div>
-            <div className="events-carousel-wrap">
-              <div className="events-carousel" aria-label="Carrousel des événements">
-                {events.map((event) => {
-                  const cta = event.cta ?? DEFAULT_CTA;
-                  return (
-                    <article
-                      className="event-card reveal"
-                      key={`${event.title}-${event.date}`}
+            <div className={`events-carousel-wrap${hasEvents ? "" : " is-empty"}`}>
+              {hasEvents ? (
+                <>
+                  <div className="events-carousel" aria-label="Carrousel des événements">
+                    {events.map((event) => {
+                      const cta = event.cta ?? DEFAULT_CTA;
+                      return (
+                        <article
+                          className="event-card reveal"
+                          key={`${event.title}-${event.date}`}
+                        >
+                          <div className="event-media">
+                            {event.image ? (
+                              <img
+                                src={event.image}
+                                alt={event.alt || event.title || "Événement EM’Motors"}
+                              />
+                            ) : null}
+                          </div>
+                          <div className="event-date">{event.date || ""}</div>
+                          <h3>{event.title || ""}</h3>
+                          <p>{event.description || ""}</p>
+                          <br />
+                          <a className="btn btn-ghost" href={cta.href || DEFAULT_CTA.href}>
+                            {cta.text || DEFAULT_CTA.text}
+                          </a>
+                        </article>
+                      );
+                    })}
+                  </div>
+                  <div className="carousel-controls">
+                    <button
+                      className="carousel-btn prev"
+                      type="button"
+                      aria-label="Événement précédent"
                     >
-                      <div className="event-media">
-                        {event.image ? (
-                          <img
-                            src={event.image}
-                            alt={event.alt || event.title || "Événement EM’Motors"}
-                          />
-                        ) : null}
-                      </div>
-                      <div className="event-date">{event.date || ""}</div>
-                      <h3>{event.title || ""}</h3>
-                      <p>{event.description || ""}</p>
-                      <br />
-                      <a className="btn btn-ghost" href={cta.href || DEFAULT_CTA.href}>
-                        {cta.text || DEFAULT_CTA.text}
-                      </a>
-                    </article>
-                  );
-                })}
-              </div>
-              <div className="carousel-controls">
-                <button className="carousel-btn prev" type="button" aria-label="Événement précédent">
-                  <span aria-hidden="true">‹</span>
-                </button>
-                <button className="carousel-btn next" type="button" aria-label="Événement suivant">
-                  <span aria-hidden="true">›</span>
-                </button>
-              </div>
+                      <span aria-hidden="true">‹</span>
+                    </button>
+                    <button
+                      className="carousel-btn next"
+                      type="button"
+                      aria-label="Événement suivant"
+                    >
+                      <span aria-hidden="true">›</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="events-empty reveal" role="status" aria-live="polite">
+                  <p>Rien de disponible pour le moment.</p>
+                </div>
+              )}
             </div>
           </div>
         </section>

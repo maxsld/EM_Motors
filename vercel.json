@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/dashboard",
+      "destination": "https://TON-PROJET-DASHBOARD.vercel.app"
+    },
+    {
+      "source": "/dashboard/:path*",
+      "destination": "https://TON-PROJET-DASHBOARD.vercel.app/:path*"
+    }
+  ]
+}

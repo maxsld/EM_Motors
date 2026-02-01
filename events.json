@@ -1,0 +1,24 @@
+[
+  {
+    "date": "2026-01-31",
+    "title": "test",
+    "description": "test test couocu elle",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7vyK6HXSOhX3MKA8hENfgZt3UALbMFY98xw&s",
+    "alt": "test",
+    "cta": {
+      "text": "Réserver",
+      "href": "#contact"
+    }
+  },
+  {
+    "date": "2026-02-07",
+    "title": "test2",
+    "description": "ddddddddddd",
+    "image": "",
+    "alt": "test2",
+    "cta": {
+      "text": "Réserver",
+      "href": "#contact"
+    }
+  }
+]

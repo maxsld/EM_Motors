@@ -1,7 +1,12 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
-import { createSession, getUserByEmail, verifyPassword } from "@/lib/auth"
+import {
+  createSession,
+  ensureAdminUser,
+  getUserByEmail,
+  verifyPassword,
+} from "@/lib/auth"
 
 export const runtime = "nodejs"
 
@@ -11,6 +16,8 @@ export async function POST(request: Request) {
   if (!email || !password) {
     return NextResponse.json({ error: "Email et mot de passe requis." }, { status: 400 })
   }
+
+  await ensureAdminUser()
 
   const user = getUserByEmail(String(email).toLowerCase())
   if (!user) {

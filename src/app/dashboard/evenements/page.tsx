@@ -19,6 +19,7 @@ import {
 import { AppSidebar } from "@/components/app-sidebar"
 
 export default function Page() {
+  const STORAGE_KEY = "emmotors-events"
   const [events, setEvents] = React.useState<
     {
       id: number
@@ -59,12 +60,41 @@ export default function Page() {
     )
   })
 
+  const mapToWebsiteEvents = React.useCallback(
+    (items: typeof events) =>
+      items.map((event) => ({
+        date: new Date(`${event.date}T00:00:00`).toLocaleDateString("fr-FR", {
+          month: "long",
+          year: "numeric",
+        }),
+        title: event.name,
+        description: event.description ?? "",
+        image: event.image_url ?? "",
+        alt: event.name,
+        cta: { text: "Réserver", href: "#contact" },
+      })),
+    []
+  )
+
+  const syncWebsiteCache = React.useCallback(
+    (items: typeof events) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mapToWebsiteEvents(items)))
+      } catch {
+        // Ignore localStorage write failures (private mode, quota, etc.)
+      }
+    },
+    [mapToWebsiteEvents]
+  )
+
   const refreshEvents = React.useCallback(async () => {
-    const response = await fetch("/api/events")
+    const response = await fetch("/api/events", { cache: "no-store" })
     if (!response.ok) return
     const data = await response.json()
-    setEvents(data.events ?? [])
-  }, [])
+    const nextEvents = data.events ?? []
+    setEvents(nextEvents)
+    syncWebsiteCache(nextEvents)
+  }, [syncWebsiteCache])
 
   React.useEffect(() => {
     refreshEvents().catch(() => {})

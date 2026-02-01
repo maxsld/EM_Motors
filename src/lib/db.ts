@@ -57,9 +57,12 @@ let postgresSql:
 let postgresReady = false
 
 const ensureSqlite = () => {
-  if (process.env.VERCEL) {
+  const isVercel = Boolean(process.env.VERCEL)
+  const isVercelProd = process.env.VERCEL_ENV === "production"
+  const allowSqliteOnVercel = process.env.SQLITE_ALLOW_ON_VERCEL === "1"
+  if (isVercel && isVercelProd && !allowSqliteOnVercel) {
     throw new Error(
-      "SQLite storage is not supported on Vercel. Configure POSTGRES_URL."
+      "SQLite storage is not supported on Vercel production. Configure POSTGRES_URL or set SQLITE_ALLOW_ON_VERCEL=1."
     )
   }
   if (sqliteDb) return sqliteDb

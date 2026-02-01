@@ -9,7 +9,10 @@ export const runtime = "nodejs"
 
 export async function GET() {
   const events = await listEvents()
-  return NextResponse.json({ events })
+  return NextResponse.json(
+    { events },
+    { headers: { "Cache-Control": "no-store" } }
+  )
 }
 
 export async function POST(request: Request) {

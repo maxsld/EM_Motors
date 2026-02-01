@@ -1,15 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "rewrites": [
-    {
-      "source": "/dashboard",
-      "destination": "https://em-motors-murex.vercel.app//dashboard"
-    },
-    {
-      "source": "/dashboard/:path*",
-      "destination": "https://em-motors-murex.vercel.app/dashboard/:path*"
-    }
-  ]
+  "outputDirectory": ".next"
 }

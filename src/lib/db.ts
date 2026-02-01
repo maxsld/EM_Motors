@@ -50,7 +50,7 @@ const SQLITE_SCHEMA = `
   );
 `
 
-let sqliteDb: Database.Database | null = null
+let sqliteDb: ReturnType<typeof Database> | null = null
 let postgresSql:
   | ((strings: TemplateStringsArray, ...values: any[]) => Promise<{ rows: any[] }>)
   | null = null

@@ -233,6 +233,7 @@ export default function Home() {
   }, [events]);
 
   useEffect(() => {
+    document.body.classList.add("is-loading");
     const loader = document.getElementById("page-loader");
     const heroVideo = document.querySelector(".hero-video") as HTMLVideoElement | null;
     let pageReady = false;
@@ -279,6 +280,7 @@ export default function Home() {
     }, 4000);
 
     return () => {
+      document.body.classList.remove("is-loading");
       window.removeEventListener("load", onLoad);
       window.clearTimeout(fallbackTimer);
       if (heroVideo) {
@@ -316,7 +318,7 @@ export default function Home() {
             </a>
             <a
               className="btn btn-ghost nav-cta"
-              href="em-motors-dashboard/login"
+              href="/dashboard/login"
               aria-label="Connexion réservée à l'équipe"
             >
               Connexion
@@ -425,10 +427,12 @@ export default function Home() {
                       key={`${event.title}-${event.date}`}
                     >
                       <div className="event-media">
-                        <img
-                          src={event.image || ""}
-                          alt={event.alt || event.title || "Événement EM’Motors"}
-                        />
+                        {event.image ? (
+                          <img
+                            src={event.image}
+                            alt={event.alt || event.title || "Événement EM’Motors"}
+                          />
+                        ) : null}
                       </div>
                       <div className="event-date">{event.date || ""}</div>
                       <h3>{event.title || ""}</h3>

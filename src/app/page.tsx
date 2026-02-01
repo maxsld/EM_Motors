@@ -14,6 +14,14 @@ type WebsiteEvent = {
   };
 };
 
+type ApiEvent = {
+  id: number;
+  name: string;
+  date: string;
+  description: string | null;
+  image_url: string | null;
+};
+
 type CarouselHandlers = {
   track: HTMLElement;
   prev: HTMLButtonElement;
@@ -27,6 +35,25 @@ type CarouselHandlers = {
 
 const DEFAULT_CTA = { text: "Réserver", href: "#contact" };
 const STORAGE_KEY = "emmotors-events";
+
+const formatEventDate = (value: string) => {
+  const parsed = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(parsed.valueOf())) return value;
+  return parsed.toLocaleDateString("fr-FR", {
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const mapApiEvents = (items: ApiEvent[]) =>
+  items.map((event) => ({
+    date: formatEventDate(event.date),
+    title: event.name,
+    description: event.description ?? "",
+    image: event.image_url ?? "",
+    alt: event.name,
+    cta: DEFAULT_CTA,
+  })) satisfies WebsiteEvent[];
 
 const DEFAULT_EVENTS = [
   {
@@ -112,15 +139,16 @@ export default function Home() {
       hasRendered = true;
     }
 
-    fetch("/events.json", { cache: "no-store" })
+    fetch("/api/events", { cache: "no-store" })
       .then((res) => {
-        if (!res.ok) throw new Error("events.json introuvable");
+        if (!res.ok) throw new Error("events api introuvable");
         return res.json();
       })
       .then((data) => {
-        if (Array.isArray(data)) {
-          setEvents(data as WebsiteEvent[]);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        if (Array.isArray(data?.events)) {
+          const mapped = mapApiEvents(data.events as ApiEvent[]);
+          setEvents(mapped);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(mapped));
           hasRendered = true;
         } else if (!hasRendered) {
           setEvents([]);

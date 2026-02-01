@@ -8,7 +8,7 @@ import { syncWebsiteEvents } from "@/lib/events-export"
 export const runtime = "nodejs"
 
 export async function GET() {
-  const events = listEvents()
+  const events = await listEvents()
   return NextResponse.json({ events })
 }
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     storedImageUrl = `/uploads/${fileName}`
   }
 
-  const id = insertEvent({
+  const id = await insertEvent({
     name,
     date,
     description: description || null,

@@ -25,8 +25,8 @@ function getWebsiteEventsPath() {
   return path.resolve(process.cwd(), "public", "events.json")
 }
 
-function toWebsiteEvents() {
-  const events = listEvents()
+async function toWebsiteEvents() {
+  const events = await listEvents()
   return events.map((event) => ({
     date: event.date,
     title: event.name,
@@ -38,9 +38,12 @@ function toWebsiteEvents() {
 }
 
 export async function syncWebsiteEvents() {
+  if (process.env.VERCEL) {
+    return null
+  }
   const targetPath = getWebsiteEventsPath()
   const dir = path.dirname(targetPath)
-  const data = JSON.stringify(toWebsiteEvents(), null, 2)
+  const data = JSON.stringify(await toWebsiteEvents(), null, 2)
   await mkdir(dir, { recursive: true })
   await writeFile(targetPath, `${data}\n`, "utf8")
   return targetPath

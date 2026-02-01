@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   await ensureAdminUser()
 
-  const user = getUserByEmail(String(email).toLowerCase())
+  const user = await getUserByEmail(String(email).toLowerCase())
   if (!user) {
     return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 })
   }
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 })
   }
 
-  const session = createSession(user.id)
+  const session = await createSession(user.id)
   const cookieStore = await cookies()
   cookieStore.set("session", session.token, {
     httpOnly: true,

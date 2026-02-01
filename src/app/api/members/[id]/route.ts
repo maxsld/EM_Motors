@@ -29,7 +29,7 @@ export async function PUT(
     )
   }
 
-  const updated = updateMember(memberId, {
+  const updated = await updateMember(memberId, {
     name,
     email: email || null,
     status,
@@ -65,7 +65,7 @@ export async function DELETE(
     return NextResponse.json({ error: "ID invalide." }, { status: 400 })
   }
 
-  const deleted = deleteMember(memberId)
+  const deleted = await deleteMember(memberId)
   if (!deleted) {
     return NextResponse.json({ error: "Membre introuvable." }, { status: 404 })
   }

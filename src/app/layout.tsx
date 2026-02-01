@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -43,7 +43,6 @@ export const metadata: Metadata = {
     "partenariats",
   ],
   authors: [{ name: "EM’Motors" }],
-  themeColor: "#0b0b0b",
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
@@ -64,6 +63,10 @@ export const metadata: Metadata = {
     icon: "/assets/favicon.ico",
     apple: "/assets/logo.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0b0b",
 };
 
 export default function RootLayout({

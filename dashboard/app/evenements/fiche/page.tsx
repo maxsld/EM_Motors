@@ -460,7 +460,11 @@ async function generatePdf(values: FormState) {
   }
 
   const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes], { type: "application/pdf" })
+  const pdfBuffer = pdfBytes.buffer.slice(
+    pdfBytes.byteOffset,
+    pdfBytes.byteOffset + pdfBytes.byteLength
+  ) as ArrayBuffer
+  const blob = new Blob([pdfBuffer], { type: "application/pdf" })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.href = url

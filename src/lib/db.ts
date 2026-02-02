@@ -117,9 +117,17 @@ const ensurePostgres = async () => {
       POSTGRES_SSL_MODE === "disable"
         ? false
         : POSTGRES_SSL_MODE === "verify-full"
-          ? undefined
+          ? { rejectUnauthorized: true }
           : { rejectUnauthorized: false }
-    postgresPool = new Pool({ connectionString: POSTGRES_URL, ssl })
+    const parsedUrl = new URL(POSTGRES_URL)
+    if (POSTGRES_SSL_MODE !== "verify-full") {
+      parsedUrl.searchParams.delete("sslmode")
+      parsedUrl.searchParams.delete("sslrootcert")
+      parsedUrl.searchParams.delete("sslcert")
+      parsedUrl.searchParams.delete("sslkey")
+      parsedUrl.searchParams.delete("sslcrl")
+    }
+    postgresPool = new Pool({ connectionString: parsedUrl.toString(), ssl })
   }
 
   if (!postgresReady) {

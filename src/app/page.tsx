@@ -330,28 +330,28 @@ export default function Home() {
           </header>
 
           <div className="hero-content">
-            <div className="partner-badge" aria-label="Plus de 30 partenaires">
+            <div className="partner-badge" aria-label="Plus de 30 membres">
               <div className="avatar-stack" aria-hidden="true">
                 <img
-                  src="https://cdn-s-www.lalsace.fr/images/754C33B2-6FB2-452F-8D1A-AF09DCCA5739/NW_raw/avec-ce-nouveau-logo-bugatti-s-approprie-les-codes-de-l-hyper-luxe-photo-sp-bugatti-1669382515.jpg"
+                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
                   className="avatar a1"
                   alt=""
                 />
                 <img
-                  src="https://rs-shop.fr/cdn/shop/files/logoarrieremercedesetoilenoir90mm.jpg?v=1768507324&width=1445"
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
                   className="avatar a2"
                   alt=""
                 />
                 <img
-                  src="https://images.caradisiac.com/logos/5/0/4/1/265041/S8-peugeot-voici-le-nouveau-logo-188394.jpg"
+                  src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80"
                   className="avatar a3"
                   alt=""
                 />
               </div>
-              <span className="partner-text">+30 partenaires</span>
+              <span className="partner-text">+30 membres</span>
             </div>
             <h1>
-              EM STRASBOURG<br />AUTOMOBILE CLUB
+              EM Motors<br />automobile club
             </h1>
             <p>
               L'association automobile de l'EM Strasbourg Business School. Événements,

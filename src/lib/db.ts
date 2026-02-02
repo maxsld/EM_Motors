@@ -134,7 +134,9 @@ const ensurePostgres = async () => {
   }
   if (!postgresReady) {
     for (const statement of POSTGRES_SCHEMA) {
-      await postgresSql!.query(statement)
+      const template = Object.assign([statement], { raw: [statement] }) as
+        unknown as TemplateStringsArray
+      await postgresSql!(template)
     }
     postgresReady = true
   }

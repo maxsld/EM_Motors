@@ -116,9 +116,9 @@ const ensurePostgres = async () => {
     const ssl =
       POSTGRES_SSL_MODE === "disable"
         ? false
-        : POSTGRES_SSL_MODE === "allow-self-signed"
-          ? { rejectUnauthorized: false }
-          : undefined
+        : POSTGRES_SSL_MODE === "verify-full"
+          ? undefined
+          : { rejectUnauthorized: false }
     postgresPool = new Pool({ connectionString: POSTGRES_URL, ssl })
   }
 

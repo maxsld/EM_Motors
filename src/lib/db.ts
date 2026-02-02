@@ -7,6 +7,7 @@ const SQLITE_DEFAULT_PATH = ".data/auth.db"
 const SQLITE_VERCEL_PATH = "/tmp/em-motors.db"
 const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
 const SHOULD_USE_POSTGRES = Boolean(POSTGRES_URL)
+const POSTGRES_SSL_MODE = process.env.POSTGRES_SSL_MODE
 const SQLITE_SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,7 +113,13 @@ const ensurePostgres = async () => {
     if (!POSTGRES_URL) {
       throw new Error("POSTGRES_URL is not configured.")
     }
-    postgresPool = new Pool({ connectionString: POSTGRES_URL })
+    const ssl =
+      POSTGRES_SSL_MODE === "disable"
+        ? false
+        : POSTGRES_SSL_MODE === "allow-self-signed"
+          ? { rejectUnauthorized: false }
+          : undefined
+    postgresPool = new Pool({ connectionString: POSTGRES_URL, ssl })
   }
 
   if (!postgresReady) {

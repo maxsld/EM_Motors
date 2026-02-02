@@ -1,19 +1,9 @@
 import fs from "node:fs"
 import path from "node:path"
 import Database from "better-sqlite3"
-import mysql, { ResultSetHeader, RowDataPacket } from "mysql2/promise"
 
 const SQLITE_DEFAULT_PATH = ".data/auth.db"
-const MYSQL_URL = process.env.MYSQL_URL
-const MYSQL_HOST = process.env.MYSQL_HOST
-const MYSQL_USER = process.env.MYSQL_USER
-const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD
-const MYSQL_DATABASE = process.env.MYSQL_DATABASE
-const MYSQL_PORT = process.env.MYSQL_PORT
 const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
-const SHOULD_USE_MYSQL = Boolean(
-  MYSQL_URL || (MYSQL_HOST && MYSQL_USER && MYSQL_DATABASE)
-)
 const SHOULD_USE_POSTGRES = Boolean(POSTGRES_URL)
 
 const SQLITE_SCHEMA = `
@@ -65,8 +55,6 @@ let postgresSql:
   | ((strings: TemplateStringsArray, ...values: any[]) => Promise<{ rows: any[] }>)
   | null = null
 let postgresReady = false
-let mysqlPool: mysql.Pool | null = null
-let mysqlReady = false
 
 const ensureSqlite = () => {
   const isVercel = Boolean(process.env.VERCEL)
@@ -94,112 +82,6 @@ const ensureSqlite = () => {
   db.exec(SQLITE_SCHEMA)
   sqliteDb = db
   return db
-}
-
-const toMySqlDateTime = (value: string) => {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.valueOf())) {
-    return value.replace("T", " ").replace("Z", "").split(".")[0]
-  }
-  const pad = (num: number) => String(num).padStart(2, "0")
-  return `${parsed.getUTCFullYear()}-${pad(parsed.getUTCMonth() + 1)}-${pad(
-    parsed.getUTCDate()
-  )} ${pad(parsed.getUTCHours())}:${pad(parsed.getUTCMinutes())}:${pad(
-    parsed.getUTCSeconds()
-  )}`
-}
-
-const ensureMysql = async () => {
-  if (!mysqlPool) {
-    if (MYSQL_URL) {
-      const parsed = new URL(MYSQL_URL)
-      mysqlPool = mysql.createPool({
-        host: parsed.hostname,
-        user: decodeURIComponent(parsed.username),
-        password: decodeURIComponent(parsed.password),
-        database: parsed.pathname ? parsed.pathname.slice(1) : undefined,
-        port: parsed.port ? Number(parsed.port) : undefined,
-        waitForConnections: true,
-        connectionLimit: 10,
-        dateStrings: true,
-        timezone: "Z",
-      })
-    } else if (MYSQL_HOST && MYSQL_USER && MYSQL_DATABASE) {
-      mysqlPool = mysql.createPool({
-        host: MYSQL_HOST,
-        user: MYSQL_USER,
-        password: MYSQL_PASSWORD,
-        database: MYSQL_DATABASE,
-        port: MYSQL_PORT ? Number(MYSQL_PORT) : undefined,
-        waitForConnections: true,
-        connectionLimit: 10,
-        dateStrings: true,
-        timezone: "Z",
-      })
-    } else {
-      throw new Error(
-        "MySQL is not configured. Provide MYSQL_URL or MYSQL_HOST/MYSQL_USER/MYSQL_DATABASE."
-      )
-    }
-  }
-
-  if (!mysqlReady) {
-    await mysqlPool.execute(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        email VARCHAR(255) NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `)
-    await mysqlPool.execute(`
-      CREATE TABLE IF NOT EXISTS sessions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        token VARCHAR(255) NOT NULL UNIQUE,
-        expires_at DATETIME NOT NULL,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT sessions_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-      );
-    `)
-    await mysqlPool.execute(`
-      CREATE TABLE IF NOT EXISTS events (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        date DATE NOT NULL,
-        description TEXT,
-        image_url TEXT,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `)
-    await mysqlPool.execute(`
-      CREATE TABLE IF NOT EXISTS treasury_operations (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        label VARCHAR(255) NOT NULL,
-        amount DOUBLE NOT NULL,
-        date DATE NOT NULL,
-        kind VARCHAR(20) NOT NULL,
-        status VARCHAR(20) NOT NULL,
-        notes TEXT,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `)
-    await mysqlPool.execute(`
-      CREATE TABLE IF NOT EXISTS members (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255),
-        status VARCHAR(20) NOT NULL,
-        membership_fee DOUBLE NOT NULL,
-        payment_status VARCHAR(20) NOT NULL,
-        notes TEXT,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `)
-    mysqlReady = true
-  }
-
-  return mysqlPool
 }
 
 const ensurePostgres = async () => {
@@ -307,13 +189,6 @@ export type SessionRow = {
 }
 
 export async function listEvents() {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, name, date, description, image_url FROM events ORDER BY date ASC"
-    )
-    return rows as DbEvent[]
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -333,13 +208,6 @@ export async function listEvents() {
 }
 
 export async function listTreasuryOperations() {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, label, amount, date, kind, status, notes FROM treasury_operations ORDER BY date DESC"
-    )
-    return rows as TreasuryOperation[]
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -359,13 +227,6 @@ export async function listTreasuryOperations() {
 }
 
 export async function listMembers() {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, name, email, status, membership_fee, payment_status, notes FROM members ORDER BY name ASC"
-    )
-    return rows as Member[]
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -392,21 +253,6 @@ export async function insertMember(member: {
   payment_status: "paid" | "due"
   notes?: string | null
 }) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO members (name, email, status, membership_fee, payment_status, notes) VALUES (?, ?, ?, ?, ?, ?)",
-      [
-        member.name,
-        member.email ?? null,
-        member.status,
-        member.membership_fee,
-        member.payment_status,
-        member.notes ?? null,
-      ]
-    )
-    return Number(result.insertId ?? 0)
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -450,22 +296,6 @@ export async function updateMember(
     notes?: string | null
   }
 ) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "UPDATE members SET name = ?, email = ?, status = ?, membership_fee = ?, payment_status = ?, notes = ? WHERE id = ?",
-      [
-        member.name,
-        member.email ?? null,
-        member.status,
-        member.membership_fee,
-        member.payment_status,
-        member.notes ?? null,
-        id,
-      ]
-    )
-    return result.affectedRows > 0
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -499,14 +329,6 @@ export async function updateMember(
 }
 
 export async function deleteMember(id: number) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "DELETE FROM members WHERE id = ?",
-      [id]
-    )
-    return result.affectedRows > 0
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -531,21 +353,6 @@ export async function insertTreasuryOperation(operation: {
   status: "real" | "planned"
   notes?: string | null
 }) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO treasury_operations (label, amount, date, kind, status, notes) VALUES (?, ?, ?, ?, ?, ?)",
-      [
-        operation.label,
-        operation.amount,
-        operation.date,
-        operation.kind,
-        operation.status,
-        operation.notes ?? null,
-      ]
-    )
-    return Number(result.insertId ?? 0)
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -589,22 +396,6 @@ export async function updateTreasuryOperation(
     notes?: string | null
   }
 ) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "UPDATE treasury_operations SET label = ?, amount = ?, date = ?, kind = ?, status = ?, notes = ? WHERE id = ?",
-      [
-        operation.label,
-        operation.amount,
-        operation.date,
-        operation.kind,
-        operation.status,
-        operation.notes ?? null,
-        id,
-      ]
-    )
-    return result.affectedRows > 0
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -638,14 +429,6 @@ export async function updateTreasuryOperation(
 }
 
 export async function deleteTreasuryOperation(id: number) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "DELETE FROM treasury_operations WHERE id = ?",
-      [id]
-    )
-    return result.affectedRows > 0
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -668,14 +451,6 @@ export async function insertEvent(event: {
   description?: string | null
   image_url?: string | null
 }) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO events (name, date, description, image_url) VALUES (?, ?, ?, ?)",
-      [event.name, event.date, event.description ?? null, event.image_url ?? null]
-    )
-    return Number(result.insertId ?? 0)
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -713,20 +488,6 @@ export async function updateEvent(
     image_url?: string | null
   }
 ) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "UPDATE events SET name = ?, date = ?, description = ?, image_url = ? WHERE id = ?",
-      [
-        event.name,
-        event.date,
-        event.description ?? null,
-        event.image_url ?? null,
-        id,
-      ]
-    )
-    return result.affectedRows > 0
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -756,14 +517,6 @@ export async function updateEvent(
 }
 
 export async function deleteEvent(id: number) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "DELETE FROM events WHERE id = ?",
-      [id]
-    )
-    return result.affectedRows > 0
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -781,14 +534,6 @@ export async function deleteEvent(id: number) {
 }
 
 export async function getUserByEmail(email: string) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      "SELECT id, email, password_hash FROM users WHERE email = ?",
-      [email]
-    )
-    return rows[0] as UserRow | undefined
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -806,14 +551,6 @@ export async function getUserByEmail(email: string) {
 }
 
 export async function createUser(email: string, passwordHash: string) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (email, password_hash) VALUES (?, ?)",
-      [email, passwordHash]
-    )
-    return Number(result.insertId ?? 0)
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -832,14 +569,6 @@ export async function createUser(email: string, passwordHash: string) {
 }
 
 export async function updateUserPassword(id: number, passwordHash: string) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [result] = await pool.execute<ResultSetHeader>(
-      "UPDATE users SET password_hash = ? WHERE id = ?",
-      [passwordHash, id]
-    )
-    return result.affectedRows > 0
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`
@@ -863,14 +592,6 @@ export async function createSessionRow(
   token: string,
   expiresAt: string
 ) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    await pool.execute(
-      "INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)",
-      [userId, token, toMySqlDateTime(expiresAt)]
-    )
-    return
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     await sql`
@@ -889,11 +610,6 @@ export async function createSessionRow(
 }
 
 export async function deleteSessionByToken(token: string) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    await pool.execute("DELETE FROM sessions WHERE token = ?", [token])
-    return
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     await sql`
@@ -908,17 +624,6 @@ export async function deleteSessionByToken(token: string) {
 }
 
 export async function getSessionByToken(token: string) {
-  if (SHOULD_USE_MYSQL) {
-    const pool = await ensureMysql()
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      `SELECT sessions.id, sessions.user_id, sessions.token, sessions.expires_at, users.email
-       FROM sessions
-       JOIN users ON users.id = sessions.user_id
-       WHERE token = ? AND expires_at > UTC_TIMESTAMP()`,
-      [token]
-    )
-    return rows[0] as SessionRow | undefined
-  }
   if (SHOULD_USE_POSTGRES) {
     const sql = await ensurePostgres()
     const result = await sql`

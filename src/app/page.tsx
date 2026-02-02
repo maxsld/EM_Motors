@@ -335,20 +335,23 @@ export default function Home() {
                 <img
                   src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
                   className="avatar a1"
+                  style={{ objectFit: "cover" }}
                   alt=""
                 />
                 <img
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
                   className="avatar a2"
+                  style={{ objectFit: "cover" }}
                   alt=""
                 />
                 <img
                   src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80"
                   className="avatar a3"
+                  style={{ objectFit: "cover" }}
                   alt=""
                 />
               </div>
-              <span className="partner-text">+30 membres</span>
+              <span className="partner-text">+30 membres actifs</span>
             </div>
             <h1>
               EM Motors<br />automobile club

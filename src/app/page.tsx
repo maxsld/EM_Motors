@@ -112,12 +112,32 @@ export default function Home() {
       hasRendered = true;
     }
 
-    fetch("/events.json", { cache: "no-store" })
-      .then((res) => {
+    const loadEvents = async () => {
+      try {
+        const response = await fetch("/api/events", { cache: "no-store" });
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data?.events)) {
+            const mapped = data.events.map((event: any) => ({
+              date: String(event.date ?? ""),
+              title: String(event.name ?? ""),
+              description: String(event.description ?? ""),
+              image: String(event.image_url ?? ""),
+              alt: String(event.name ?? "Événement EM Motors"),
+              cta: { text: "Réserver", href: "#contact" },
+            })) as WebsiteEvent[];
+            setEvents(mapped);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(mapped));
+            hasRendered = true;
+            return;
+          }
+        }
+      } catch {}
+
+      try {
+        const res = await fetch("/events.json", { cache: "no-store" });
         if (!res.ok) throw new Error("events.json introuvable");
-        return res.json();
-      })
-      .then((data) => {
+        const data = await res.json();
         if (Array.isArray(data)) {
           setEvents(data as WebsiteEvent[]);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -125,10 +145,12 @@ export default function Home() {
         } else if (!hasRendered) {
           setEvents([]);
         }
-      })
-      .catch(() => {
+      } catch {
         if (!hasRendered) setEvents(DEFAULT_EVENTS);
-      });
+      }
+    };
+
+    loadEvents();
 
     const onStorage = (event: StorageEvent) => {
       if (event.key !== STORAGE_KEY) return;

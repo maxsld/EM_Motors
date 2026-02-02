@@ -3,6 +3,7 @@ import path from "node:path"
 import Database from "better-sqlite3"
 
 const SQLITE_DEFAULT_PATH = ".data/auth.db"
+const SQLITE_VERCEL_PATH = "/tmp/em-motors.db"
 const SQLITE_SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +52,9 @@ let sqliteDb: ReturnType<typeof Database> | null = null
 const ensureSqlite = () => {
   if (sqliteDb) return sqliteDb
 
-  const rawDbPath = process.env.SQLITE_PATH ?? SQLITE_DEFAULT_PATH
+  const rawDbPath =
+    process.env.SQLITE_PATH ??
+    (process.env.VERCEL ? SQLITE_VERCEL_PATH : SQLITE_DEFAULT_PATH)
   const dbPath = path.isAbsolute(rawDbPath)
     ? rawDbPath
     : path.resolve(process.cwd(), rawDbPath)

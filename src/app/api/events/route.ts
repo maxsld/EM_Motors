@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     storedImageUrl = `/uploads/${fileName}`
   }
 
-  const id = insertEvent({
+  const id = await insertEvent({
     name,
     date,
     description: description || null,

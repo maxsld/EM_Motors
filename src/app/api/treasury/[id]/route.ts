@@ -29,7 +29,7 @@ export async function PUT(
     )
   }
 
-  const updated = updateTreasuryOperation(operationId, {
+  const updated = await updateTreasuryOperation(operationId, {
     label,
     date,
     amount,
@@ -65,7 +65,7 @@ export async function DELETE(
     return NextResponse.json({ error: "ID invalide." }, { status: 400 })
   }
 
-  const deleted = deleteTreasuryOperation(operationId)
+  const deleted = await deleteTreasuryOperation(operationId)
   if (!deleted) {
     return NextResponse.json({ error: "Opération introuvable." }, { status: 404 })
   }

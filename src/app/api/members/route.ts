@@ -5,7 +5,7 @@ import { insertMember, listMembers } from "@/lib/db"
 export const runtime = "nodejs"
 
 export async function GET() {
-  const members = await listMembers()
+  const members = listMembers()
   return NextResponse.json({ members })
 }
 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const id = await insertMember({
+  const id = insertMember({
     name,
     email: email || null,
     status,

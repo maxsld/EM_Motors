@@ -5,7 +5,7 @@ import { insertTreasuryOperation, listTreasuryOperations } from "@/lib/db"
 export const runtime = "nodejs"
 
 export async function GET() {
-  const operations = await listTreasuryOperations()
+  const operations = listTreasuryOperations()
   return NextResponse.json({ operations })
 }
 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const id = await insertTreasuryOperation({
+  const id = insertTreasuryOperation({
     label,
     date,
     amount,

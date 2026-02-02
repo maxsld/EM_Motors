@@ -63,7 +63,55 @@ const SQLITE_SCHEMA = `
   );
 `
 
+<<<<<<< ours
 let sqliteDb: ReturnType<typeof Database> | null = null
+=======
+const POSTGRES_SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );`,
+  `CREATE TABLE IF NOT EXISTS sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );`,
+  `CREATE TABLE IF NOT EXISTS events (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    date TEXT NOT NULL,
+    description TEXT,
+    image_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );`,
+  `CREATE TABLE IF NOT EXISTS treasury_operations (
+    id SERIAL PRIMARY KEY,
+    label TEXT NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
+    date TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    status TEXT NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );`,
+  `CREATE TABLE IF NOT EXISTS members (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT,
+    status TEXT NOT NULL,
+    membership_fee DOUBLE PRECISION NOT NULL,
+    payment_status TEXT NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );`,
+]
+
+let sqliteDb: Database.Database | null = null
+>>>>>>> theirs
 let postgresSql:
   | ((strings: TemplateStringsArray, ...values: any[]) => Promise<{ rows: any[] }>)
   | null = null
@@ -103,57 +151,9 @@ const ensurePostgres = async () => {
     postgresSql = mod.sql
   }
   if (!postgresReady) {
-    await postgresSql!`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        email TEXT NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `
-    await postgresSql!`
-      CREATE TABLE IF NOT EXISTS sessions (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        token TEXT NOT NULL UNIQUE,
-        expires_at TIMESTAMPTZ NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `
-    await postgresSql!`
-      CREATE TABLE IF NOT EXISTS events (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        date TEXT NOT NULL,
-        description TEXT,
-        image_url TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `
-    await postgresSql!`
-      CREATE TABLE IF NOT EXISTS treasury_operations (
-        id SERIAL PRIMARY KEY,
-        label TEXT NOT NULL,
-        amount DOUBLE PRECISION NOT NULL,
-        date TEXT NOT NULL,
-        kind TEXT NOT NULL,
-        status TEXT NOT NULL,
-        notes TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `
-    await postgresSql!`
-      CREATE TABLE IF NOT EXISTS members (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT,
-        status TEXT NOT NULL,
-        membership_fee DOUBLE PRECISION NOT NULL,
-        payment_status TEXT NOT NULL,
-        notes TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `
+    for (const statement of POSTGRES_SCHEMA) {
+      await postgresSql!(statement as unknown as TemplateStringsArray)
+    }
     postgresReady = true
   }
   return postgresSql

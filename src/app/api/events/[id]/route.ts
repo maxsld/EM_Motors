@@ -43,7 +43,7 @@ export async function PUT(
     storedImageUrl = `/uploads/${fileName}`
   }
 
-  const updated = await updateEvent(eventId, {
+  const updated = updateEvent(eventId, {
     name,
     date,
     description: description || null,
@@ -81,7 +81,7 @@ export async function DELETE(
     return NextResponse.json({ error: "ID invalide." }, { status: 400 })
   }
 
-  const deleted = await deleteEvent(eventId)
+  const deleted = deleteEvent(eventId)
   if (!deleted) {
     return NextResponse.json({ error: "Événement introuvable." }, { status: 404 })
   }

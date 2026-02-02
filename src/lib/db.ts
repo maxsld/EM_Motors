@@ -2,9 +2,22 @@ import fs from "node:fs"
 import path from "node:path"
 import Database from "better-sqlite3"
 
+<<<<<<< ours
 const SQLITE_DEFAULT_PATH = ".data/auth.db"
 const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
 const SHOULD_USE_POSTGRES = Boolean(POSTGRES_URL)
+=======
+const DEFAULT_DB_PATH = ".data/auth.db"
+const dbPath = path.resolve(process.cwd(), process.env.SQLITE_PATH ?? DEFAULT_DB_PATH)
+const dir = path.dirname(dbPath)
+
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true })
+}
+
+const db = new Database(dbPath)
+db.pragma("journal_mode = WAL")
+>>>>>>> theirs
 
 const SQLITE_SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (

@@ -22,6 +22,13 @@ export async function PUT(
   const date = String(formData.get("date") ?? "").trim()
   const description = String(formData.get("description") ?? "").trim()
   const imageUrlField = String(formData.get("imageUrl") ?? "").trim()
+  const showOnHomeField = formData.get("showOnHome")
+  const showOnHome =
+    showOnHomeField === null
+      ? true
+      : ["1", "true", "on", "oui"].includes(
+          String(showOnHomeField).toLowerCase()
+        )
   const imageFile = formData.get("imageFile")
 
   if (!name || !date) {
@@ -48,6 +55,7 @@ export async function PUT(
     date,
     description: description || null,
     image_url: storedImageUrl,
+    show_on_home: showOnHome,
   })
 
   if (!updated) {
@@ -67,6 +75,7 @@ export async function PUT(
       date,
       description: description || null,
       image_url: storedImageUrl,
+      show_on_home: showOnHome,
     },
   })
 }

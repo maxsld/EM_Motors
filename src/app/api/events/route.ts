@@ -21,6 +21,13 @@ export async function POST(request: Request) {
   const date = String(formData.get("date") ?? "").trim()
   const description = String(formData.get("description") ?? "").trim()
   const imageUrlField = String(formData.get("imageUrl") ?? "").trim()
+  const showOnHomeField = formData.get("showOnHome")
+  const showOnHome =
+    showOnHomeField === null
+      ? true
+      : ["1", "true", "on", "oui"].includes(
+          String(showOnHomeField).toLowerCase()
+        )
   const imageFile = formData.get("imageFile")
 
   if (!name || !date) {
@@ -47,6 +54,7 @@ export async function POST(request: Request) {
     date,
     description: description || null,
     image_url: storedImageUrl,
+    show_on_home: showOnHome,
   })
 
   try {
@@ -62,6 +70,7 @@ export async function POST(request: Request) {
       date,
       description: description || null,
       image_url: storedImageUrl,
+      show_on_home: showOnHome,
     },
   })
 }

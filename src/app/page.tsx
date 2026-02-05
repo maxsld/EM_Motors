@@ -118,14 +118,16 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data?.events)) {
-            const mapped = data.events.map((event: any) => ({
-              date: String(event.date ?? ""),
-              title: String(event.name ?? ""),
-              description: String(event.description ?? ""),
-              image: String(event.image_url ?? ""),
-              alt: String(event.name ?? "Événement EM Motors"),
-              cta: { text: "Réserver", href: "#contact" },
-            })) as WebsiteEvent[];
+            const mapped = data.events
+              .filter((event: any) => event?.show_on_home !== false)
+              .map((event: any) => ({
+                date: String(event.date ?? ""),
+                title: String(event.name ?? ""),
+                description: String(event.description ?? ""),
+                image: String(event.image_url ?? ""),
+                alt: String(event.name ?? "Événement EM Motors"),
+                cta: { text: "Réserver", href: "#contact" },
+              })) as WebsiteEvent[];
             setEvents(mapped);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(mapped));
             hasRendered = true;

@@ -28,6 +28,7 @@ const SQLITE_SCHEMA = `
     date TEXT NOT NULL,
     description TEXT,
     image_url TEXT,
+    show_on_home INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE TABLE IF NOT EXISTS treasury_operations (
@@ -59,8 +60,10 @@ const POSTGRES_SCHEMA = [
     date TEXT NOT NULL,
     description TEXT,
     image_url TEXT,
+    show_on_home BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );`,
+  "ALTER TABLE events ADD COLUMN IF NOT EXISTS show_on_home BOOLEAN NOT NULL DEFAULT TRUE;",
   `CREATE TABLE IF NOT EXISTS treasury_operations (
     id SERIAL PRIMARY KEY,
     label TEXT NOT NULL,
@@ -104,8 +107,20 @@ const ensureSqlite = () => {
   const db = new Database(dbPath)
   db.pragma("journal_mode = WAL")
   db.exec(SQLITE_SCHEMA)
+  ensureSqliteEventColumns(db)
   sqliteDb = db
   return db
+}
+
+const ensureSqliteEventColumns = (db: Database) => {
+  const columns = db.prepare("PRAGMA table_info(events)").all() as {
+    name: string
+  }[]
+  if (!columns.some((column) => column.name === "show_on_home")) {
+    db.prepare(
+      "ALTER TABLE events ADD COLUMN show_on_home INTEGER NOT NULL DEFAULT 1"
+    ).run()
+  }
 }
 
 const ensurePostgres = async () => {
@@ -146,6 +161,7 @@ export type DbEvent = {
   date: string
   description: string | null
   image_url: string | null
+  show_on_home: boolean
 }
 
 export type TreasuryOperation = {
@@ -186,17 +202,28 @@ export async function listEvents() {
   if (SHOULD_USE_POSTGRES) {
     const pool = await ensurePostgres()
     const result = await pool.query(
-      "SELECT id, name, date, description, image_url FROM events ORDER BY date ASC"
+      "SELECT id, name, date, description, image_url, show_on_home FROM events ORDER BY date ASC"
     )
-    return result.rows as DbEvent[]
+    return result.rows.map((row) => ({
+      ...row,
+      show_on_home: row.show_on_home ?? true,
+    })) as DbEvent[]
   }
 
   const db = ensureSqlite()
-  return db
+  const rows = db
     .prepare(
-      "SELECT id, name, date, description, image_url FROM events ORDER BY date ASC"
+      "SELECT id, name, date, description, image_url, show_on_home FROM events ORDER BY date ASC"
     )
-    .all() as DbEvent[]
+    .all() as Array<
+    DbEvent & {
+      show_on_home: number
+    }
+  >
+  return rows.map((row) => ({
+    ...row,
+    show_on_home: Boolean(row.show_on_home),
+  }))
 }
 
 export async function listTreasuryOperations() {
@@ -436,16 +463,19 @@ export async function insertEvent(event: {
   date: string
   description?: string | null
   image_url?: string | null
+  show_on_home?: boolean
 }) {
+  const showOnHome = event.show_on_home ?? true
   if (SHOULD_USE_POSTGRES) {
     const pool = await ensurePostgres()
     const result = await pool.query(
-      "INSERT INTO events (name, date, description, image_url) VALUES ($1, $2, $3, $4) RETURNING id",
+      "INSERT INTO events (name, date, description, image_url, show_on_home) VALUES ($1, $2, $3, $4, $5) RETURNING id",
       [
         event.name,
         event.date,
         event.description ?? null,
         event.image_url ?? null,
+        showOnHome,
       ]
     )
     return Number(result.rows[0]?.id ?? 0)
@@ -453,13 +483,14 @@ export async function insertEvent(event: {
 
   const db = ensureSqlite()
   const stmt = db.prepare(
-    "INSERT INTO events (name, date, description, image_url) VALUES (?, ?, ?, ?)"
+    "INSERT INTO events (name, date, description, image_url, show_on_home) VALUES (?, ?, ?, ?, ?)"
   )
   const result = stmt.run(
     event.name,
     event.date,
     event.description ?? null,
-    event.image_url ?? null
+    event.image_url ?? null,
+    showOnHome ? 1 : 0
   )
   return result.lastInsertRowid as number
 }
@@ -471,26 +502,36 @@ export async function updateEvent(
     date: string
     description?: string | null
     image_url?: string | null
+    show_on_home?: boolean
   }
 ) {
+  const showOnHome = event.show_on_home ?? true
   if (SHOULD_USE_POSTGRES) {
     const pool = await ensurePostgres()
     const result = await pool.query(
-      "UPDATE events SET name = $1, date = $2, description = $3, image_url = $4 WHERE id = $5 RETURNING id",
-      [event.name, event.date, event.description ?? null, event.image_url ?? null, id]
+      "UPDATE events SET name = $1, date = $2, description = $3, image_url = $4, show_on_home = $5 WHERE id = $6 RETURNING id",
+      [
+        event.name,
+        event.date,
+        event.description ?? null,
+        event.image_url ?? null,
+        showOnHome,
+        id,
+      ]
     )
     return result.rows.length > 0
   }
 
   const db = ensureSqlite()
   const stmt = db.prepare(
-    "UPDATE events SET name = ?, date = ?, description = ?, image_url = ? WHERE id = ?"
+    "UPDATE events SET name = ?, date = ?, description = ?, image_url = ?, show_on_home = ? WHERE id = ?"
   )
   const result = stmt.run(
     event.name,
     event.date,
     event.description ?? null,
     event.image_url ?? null,
+    showOnHome ? 1 : 0,
     id
   )
   return result.changes > 0

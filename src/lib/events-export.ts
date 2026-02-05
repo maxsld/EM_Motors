@@ -27,14 +27,16 @@ function getWebsiteEventsPath() {
 
 async function toWebsiteEvents() {
   const events = await listEvents()
-  return events.map((event) => ({
-    date: event.date,
-    title: event.name,
-    description: event.description ?? "",
-    image: event.image_url ?? "",
-    alt: event.name,
-    cta: DEFAULT_CTA,
-  })) satisfies WebsiteEvent[]
+  return events
+    .filter((event) => event.show_on_home !== false)
+    .map((event) => ({
+      date: event.date,
+      title: event.name,
+      description: event.description ?? "",
+      image: event.image_url ?? "",
+      alt: event.name,
+      cta: DEFAULT_CTA,
+    })) satisfies WebsiteEvent[]
 }
 
 export async function syncWebsiteEvents() {

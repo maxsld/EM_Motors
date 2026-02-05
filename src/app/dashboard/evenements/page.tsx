@@ -27,6 +27,7 @@ export default function Page() {
       date: string
       description: string | null
       image_url: string | null
+      show_on_home: boolean
     }[]
   >([])
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -37,6 +38,7 @@ export default function Page() {
     date: string
     description: string | null
     image_url: string | null
+    show_on_home: boolean
   } | null>(null)
 
   const [offset, setOffset] = React.useState(0)
@@ -62,17 +64,19 @@ export default function Page() {
 
   const mapToWebsiteEvents = React.useCallback(
     (items: typeof events) =>
-      items.map((event) => ({
-        date: new Date(`${event.date}T00:00:00`).toLocaleDateString("fr-FR", {
-          month: "long",
-          year: "numeric",
-        }),
-        title: event.name,
-        description: event.description ?? "",
-        image: event.image_url ?? "",
-        alt: event.name,
-        cta: { text: "Réserver", href: "#contact" },
-      })),
+      items
+        .filter((event) => event.show_on_home !== false)
+        .map((event) => ({
+          date: new Date(`${event.date}T00:00:00`).toLocaleDateString("fr-FR", {
+            month: "long",
+            year: "numeric",
+          }),
+          title: event.name,
+          description: event.description ?? "",
+          image: event.image_url ?? "",
+          alt: event.name,
+          cta: { text: "Réserver", href: "#contact" },
+        })),
     []
   )
 
@@ -470,6 +474,17 @@ Description : ${event.description ?? "—"}
                   className="border border-border bg-background px-3 py-2 text-sm text-foreground"
                 />
               </label>
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                Afficher sur la page d'accueil
+                <select
+                  name="showOnHome"
+                  defaultValue="true"
+                  className="border border-border bg-background px-3 py-2 text-sm text-foreground"
+                >
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+              </label>
               <div className="flex items-center justify-end gap-2">
                 <button
                   type="button"
@@ -549,6 +564,17 @@ Description : ${event.description ?? "—"}
                   accept="image/*"
                   className="border border-border bg-background px-3 py-2 text-sm text-foreground"
                 />
+              </label>
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                Afficher sur la page d'accueil
+                <select
+                  name="showOnHome"
+                  defaultValue={editEvent.show_on_home ? "true" : "false"}
+                  className="border border-border bg-background px-3 py-2 text-sm text-foreground"
+                >
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
               </label>
               <div className="flex items-center justify-end gap-2">
                 <button

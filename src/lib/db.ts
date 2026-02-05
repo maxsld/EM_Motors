@@ -112,7 +112,7 @@ const ensureSqlite = () => {
   return db
 }
 
-const ensureSqliteEventColumns = (db: Database) => {
+const ensureSqliteEventColumns = (db: ReturnType<typeof Database>) => {
   const columns = db.prepare("PRAGMA table_info(events)").all() as {
     name: string
   }[]
@@ -216,7 +216,7 @@ export async function listEvents() {
       "SELECT id, name, date, description, image_url, show_on_home FROM events ORDER BY date ASC"
     )
     .all() as Array<
-    DbEvent & {
+    Omit<DbEvent, "show_on_home"> & {
       show_on_home: number
     }
   >

@@ -7,22 +7,16 @@ import { AppSidebar } from "@/components/app-sidebar"
 
 const DRIVE_BASE_URL = "https://drive.google.com"
 
-const internalDocs = [
-  { label: "Compte rendu réunion", url: DRIVE_BASE_URL },
-  { label: "Planning interne", url: DRIVE_BASE_URL },
-  { label: "Dossiers équipe", url: DRIVE_BASE_URL },
-  { label: "Suivi projets", url: DRIVE_BASE_URL },
-  {
-    label: "Templates de communication (emailing, affiches, stories)",
-    url: DRIVE_BASE_URL,
-  },
-]
-
 const externalDocs = [
-  { label: "Charte graphique", url: DRIVE_BASE_URL },
-  { label: "Logo (formats)", url: DRIVE_BASE_URL },
+  {
+    label: "Charte graphique",
+    url: "https://drive.google.com/drive/folders/1NvRhPUs1X9-qYJ8EATTspX9TWf-TiPs7?dmr=1&ec=wgc-drive-globalnav-goto",
+  },
+  {
+    label: "Logo (Annexe 2)",
+    url: "/annexe/logo.jpeg",
+  },
   { label: "Instagram", url: DRIVE_BASE_URL },
-  { label: "LinkedIn", url: DRIVE_BASE_URL },
 ]
 
 function DocCard({
@@ -33,7 +27,7 @@ function DocCard({
   items: { label: string; url: string }[]
 }) {
   return (
-    <div className="border border-border bg-card p-6">
+    <div className="w-full border border-border bg-card p-6">
       <h2 className="text-lg font-semibold">{title}</h2>
       <div className="mt-4 grid gap-3 text-sm">
         {items.map((item) => (
@@ -70,8 +64,7 @@ export default function Page() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <div className="px-4 lg:px-6">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <DocCard title="Communication interne" items={internalDocs} />
+                <div className="grid gap-4">
                   <DocCard title="Communication externe" items={externalDocs} />
                 </div>
               </div>
